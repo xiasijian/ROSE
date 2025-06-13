@@ -134,7 +134,7 @@ def mapEnhancerToGene(annotFile: str,
         else:
             newLine = line[0:9]
             newLine.append(','.join(ROSE_utils_new.uniquify([startDict[x]['name'] for x in overlappingGenes])))
-            newLine.append(','.join(ROSE_utils_new.uniquify([start_dict[x]['name'] for x in proximalGenes])))
+            newLine.append(','.join(ROSE_utils_new.uniquify([start_Dict[x]['name'] for x in proximalGenes])))
             newLine.append(closestGene)
             newLine += line[-2:]
         
