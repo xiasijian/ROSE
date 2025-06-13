@@ -21,7 +21,7 @@ from collections import defaultdict
 from typing import List, Dict, Tuple, DefaultDict
 
 # Import ROSE utility functions
-import ROSE_utils
+import ROSE_utils_new
 
 
 def mapEnhancerToGene(annotFile: str, 
@@ -48,27 +48,27 @@ def mapEnhancerToGene(annotFile: str,
     """
     
     # Create dictionary of gene start positions
-    startDict = ROSE_utils.makeStartDict(annotFile)
-    enhancerTable = ROSE_utils.parseTable(enhancerFile, '\t')
+    startDict = ROSE_utils_new.makeStartDict(annotFile)
+    enhancerTable = ROSE_utils_new.parseTable(enhancerFile, '\t')
 
     # Get list of transcribed genes to consider
     if transcribedFile:
-        transcribedTable = ROSE_utils.parseTable(transcribedFile, '\t')
+        transcribedTable = ROSE_utils_new.parseTable(transcribedFile, '\t')
         transcribedGenes = [line[1] for line in transcribedTable]
     else:
         transcribedGenes = list(startDict.keys())
 
     print('Creating transcript collection')
-    transcribedCollection = ROSE_utils.makeTranscriptCollection(
+    transcribedCollection = ROSE_utils_new.makeTranscriptCollection(
         annotFile, 0, 0, 500, transcribedGenes)
 
     print('Creating TSS collection')
     tssLoci = []
     for geneID in transcribedGenes:
-        tssLoci.append(ROSE_utils.makeTSSLocus(geneID, startDict, 0, 0))
+        tssLoci.append(ROSE_utils_new.makeTSSLocus(geneID, startDict, 0, 0))
 
     # Create collection of transcription start sites
-    tssCollection = ROSE_utils.LocusCollection(tssLoci, 50)
+    tssCollection = ROSE_utils_new.LocusCollection(tssLoci, 50)
 
     # Initialize dictionaries to store gene-enhancer relationships
     geneDict = {'overlapping': defaultdict(list), 'proximal': defaultdict(list)}
@@ -91,7 +91,7 @@ def mapEnhancerToGene(annotFile: str,
 
         # Create enhancer locus object
         enhancerString = f"{line[1]}:{line[2]}-{line[3]}"
-        enhancerLocus = ROSE_utils.Locus(line[1], line[2], line[3], '.', line[0])
+        enhancerLocus = ROSE_utils_new.Locus(line[1], line[2], line[3], '.', line[0])
 
         # Find overlapping genes (genes whose transcripts overlap enhancer)
         overlappingLoci = transcribedCollection.getOverlap(enhancerLocus, 'both')
@@ -99,18 +99,18 @@ def mapEnhancerToGene(annotFile: str,
 
         # Find proximal genes (TSS within search window of enhancer)
         proximalLoci = tssCollection.getOverlap(
-            ROSE_utils.makeSearchLocus(enhancerLocus, searchWindow, searchWindow), 'both')
+            ROSE_utils_new.makeSearchLocus(enhancerLocus, searchWindow, searchWindow), 'both')
         proximalGenes = [locus.ID() for locus in proximalLoci]
 
         # Find distal genes (TSS within 1Mb of enhancer)
         distalLoci = tssCollection.getOverlap(
-            ROSE_utils.makeSearchLocus(enhancerLocus, 1000000, 1000000), 'both')
+            ROSE_utils_new.makeSearchLocus(enhancerLocus, 1000000, 1000000), 'both')
         distalGenes = [locus.ID() for locus in distalLoci]
 
         # Remove duplicates between gene categories
-        overlappingGenes = ROSE_utils.uniquify(overlappingGenes)
-        proximalGenes = ROSE_utils.uniquify(proximalGenes)
-        distalGenes = ROSE_utils.uniquify(distalGenes)
+        overlappingGenes = ROSE_utils_new.uniquify(overlappingGenes)
+        proximalGenes = ROSE_utils_new.uniquify(proximalGenes)
+        distalGenes = ROSE_utils_new.uniquify(distalGenes)
         
         # Remove genes that appear in multiple categories
         allEnhancerGenes = overlappingGenes + proximalGenes + distalGenes
@@ -128,13 +128,13 @@ def mapEnhancerToGene(annotFile: str,
         # Add row to enhancer-to-gene table
         if noFormatTable:
             newLine = list(line)
-            newLine.append(','.join(ROSE_utils.uniquify([startDict[x]['name'] for x in overlappingGenes])))
-            newLine.append(','.join(ROSE_utils.uniquify([startDict[x]['name'] for x in proximalGenes])))
+            newLine.append(','.join(ROSE_utils_new.uniquify([startDict[x]['name'] for x in overlappingGenes])))
+            newLine.append(','.join(ROSE_utils_new.uniquify([startDict[x]['name'] for x in proximalGenes])))
             newLine.append(closestGene)
         else:
             newLine = line[0:9]
-            newLine.append(','.join(ROSE_utils.uniquify([startDict[x]['name'] for x in overlappingGenes])))
-            newLine.append(','.join(ROSE_utils.uniquify([start_dict[x]['name'] for x in proximalGenes])))
+            newLine.append(','.join(ROSE_utils_new.uniquify([startDict[x]['name'] for x in overlappingGenes])))
+            newLine.append(','.join(ROSE_utils_new.uniquify([start_dict[x]['name'] for x in proximalGenes])))
             newLine.append(closestGene)
             newLine += line[-2:]
         
@@ -154,8 +154,8 @@ def mapEnhancerToGene(annotFile: str,
             superDict[refID].append(int(line[-1]))
 
     # Create gene-to-enhancer table
-    overallGeneList = ROSE_utils.uniquify(overallGeneList)
-    rankOrder = ROSE_utils.order([min(rankDict[x]) for x in overallGeneList])
+    overallGeneList = ROSE_utils_new.uniquify(overallGeneList)
+    rankOrder = ROSE_utils_new.order([min(rankDict[x]) for x in overallGeneList])
     
     usedNames = []
     for i in rankOrder:
@@ -176,7 +176,7 @@ def mapEnhancerToGene(annotFile: str,
 
     # Sort enhancer table by rank if not preserving format
     if not noFormatTable:
-        enhancerOrder = ROSE_utils.order([int(line[-2]) for line in enhancerToGeneTable[1:]])
+        enhancerOrder = ROSE_utils_new.order([int(line[-2]) for line in enhancerToGeneTable[1:]])
         sortedTable = [enhancerToGeneTable[0]] + [enhancerToGeneTable[i+1] for i in enhancerOrder]
         return sortedTable, geneToEnhancerTable
     
@@ -216,7 +216,7 @@ def main():
     # Set up paths and parameters
     enhancerFile = options.input
     window = options.window
-    outFolder = (ROSE_utils.formatFolder(options.out, True) if options.out 
+    outFolder = (ROSE_utils_new.formatFolder(options.out, True) if options.out 
                 else os.path.join(os.path.dirname(enhancerFile), ''))
     
     # Get genome annotation file
@@ -247,10 +247,10 @@ def main():
     suffix = f"_{window//1000}KB" if window != 50000 else ""
     
     out1 = f"{outFolder}{baseName}_ENHANCER_TO_GENE{suffix}.txt"
-    ROSE_utils.unParseTable(enhancerToGeneTable, out1, '\t')
+    ROSE_utils_new.unParseTable(enhancerToGeneTable, out1, '\t')
     
     out2 = f"{outFolder}{baseName}_GENE_TO_ENHANCER{suffix}.txt"
-    ROSE_utils.unParseTable(geneToEnhancerTable, out2, '\t')
+    ROSE_utils_new.unParseTable(geneToEnhancerTable, out2, '\t')
 
 
 if __name__ == "__main__":
