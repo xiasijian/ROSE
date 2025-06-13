@@ -1,2 +1,2 @@
 # ROSE
-ROSE software for super-enhancer using Chipseq
+ROSE software for super-enhancer in python3.12
